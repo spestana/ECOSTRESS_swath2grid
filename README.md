@@ -1,7 +1,6 @@
 # ECOSTRESS Swath to Grid Conversion Script
 ---
 # Objective:
----
 The ECOSTRESS_Georeference.py script converts ECOSTRESS swath data products, stored in Hierarchical Data Format version 5 (HDF5, .h5) into projected GeoTIFFs. When executing this script, a user will submit a desired output projection and input directory containing ECOSTRESS swath data products as command line arguments. The script begins by opening any of the ECOSTRESS products listed below that are contained in the input directory. Next, it uses the latitude and longitude arrays from the ECOSTRESS L1GEO product (except for L3/L4 ALEXI_USDA and ECO1BMAPRAD) to resample the swath dataset to a grid using nearest neighbor resampling (`Pyresample/kdtree`). From there, the script defines the coordinate reference system (CRS) input by the user (options include UTM Zones and Geographic (EPSG:4326)). Ultimately, the script exports the gridded array as a GeoTIFF (`GDAL`). The script will loop through and perform the aforementioned steps for each science dataset (SDS) in the HDF5 file. The resulting GeoTIFF files can be downloaded with spatial reference into GIS and Remote Sensing software programs. The script also will batch process all ECOSTRESS swath files contained in the input directory provided. For ECOSTRESS products that include a scale factor in the metadata, the output will be scaled, and for products that include a fill value in the file metadata, this will be carried over into the GeoTIFF outputs. For layers that do not contain a fill value in the file metadata, the fill value will be defined as the highest possible value for the given datatype of an SDS.
 ## Available Products:
     0. ECO1BGEO (Latitude and Longitude arrays are needed for swath to grid conversion)
@@ -17,7 +16,6 @@ The ECOSTRESS_Georeference.py script converts ECOSTRESS swath data products, sto
     10. ECO4WUE
 ---
 # Prerequisites:
----
 *Disclaimer: Script has been tested on Windows and MacOS using the specifications identified below.*  
 + #### Python version 3.6  
   + `GDAL`
@@ -28,6 +26,7 @@ The ECOSTRESS_Georeference.py script converts ECOSTRESS swath data products, sto
   + `numpy`      
 
 For a complete list of required packages, check out `windowsOS.yml` (Windows users) or `macOS.yml` (MacOS users).
+---
 # Procedures:
 > #### 1.	Copy/clone ECOSTRESS_Georeference.py from LP DAAC Data User Resources Repository  
 > #### 2.	Download ECOSTRESS data and corresponding ECO1BGEO files from the LP DAAC to a local directory (see above for applicable products)  
@@ -38,6 +37,7 @@ For a complete list of required packages, check out `windowsOS.yml` (Windows use
 > #### 6.	Once activated, run the script with the following in your Command Prompt/terminal window:
   > 1.  `python ECOSTRESS_Georeference.py <insert reprojection desired. Options: 'GEO' and 'UTM'> <insert input directory with ECOSTRESS files here>`
   > 2. Ex:   `python ECOSTRESS_Georeference.py GEO C:/users/johndoe/ASTERL1T/`
+---
 # Contact Information:
 #### Author: Cole Krehbiel¹   
 **Contact:** LPDAAC@usgs.gov  
