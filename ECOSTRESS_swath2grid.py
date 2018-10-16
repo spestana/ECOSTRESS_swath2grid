@@ -1,46 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Script to Georeference ECOSTRESS Products
-Author: Cole Krehbiel
-Last Updated: 9/21/2018
-Products Tested:
-    1. L1B_MAP
-    2. L1B_RAD 
-    3. L2_CLOUD
-    4. L2_LSTE
-    5. L3_ET_ALEXI_USDA
-    6. L3_ET_PT-JPL
-    7. L3_L4_QA
-    8. L4_ESI_PT-JPL
-    9. L4_ESI_ALEXI_USDA
-    10. L4_WUE
-
-Completed Tasks:
-1. Add functionality for L1B_MAP
-2. Add functionality for ALEXI Products
-3. Add support for Geographic (Calculate Pixel Size)
-4. Add support for UTM (Determine Zone)
-5. Wrap into command line executable
-6. Added ability to scale data 
-
-Outstanding Issues/Questions/Tasks:
-    1. How to handle datasets with no fill value?
-    3. Add more error handling
-    4. Identical outputs with ecostress_reprojection_tool
-
-
 -------------------------------------------------------------------------------
- PROCEDURES:
- 1.	Copy/clone ECOSTRESS_Georeference.py from LP DAAC Data User Resources Repository
- 2.	Download ECOSTRESS data and corresponding L1BGEO files from the LP DAAC to
-   a local directory (see above for applicable products)
- 3.	Open a Command Prompt/terminal window and navigate to the directory where 
-     you downloaded the ECOSTRESS_Georeference.py script
- 4.	Activate python in the Command Prompt/terminal window
-     1.  > activate [python environment name]
- 5.	Once activated, run the script with the following in your Command Prompt:
-     1.  > python ECOSTRESS_Georeference.py [insert input dir with ECOSTRESS files here]
-             1.	Example of input directory: C:/users/johndoe/ASTERL1T/
+ECOSTRESS Swath to Grid Conversion Script
+Author: Cole Krehbiel
+Last Updated: 10/16/2018
+See README for additional information: 
+https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse
 -------------------------------------------------------------------------------
 """
 # Load necessary packages into Python
@@ -49,7 +14,7 @@ import numpy as np
 from pyresample import geometry as geom
 from pyresample import kd_tree as kdt
 from osgeo import gdal, gdal_array, gdalconst, osr
-#------------------------------------------------------------------------------
+#-----------------ADD COMMAND LINE ARGUMENTS AND ERROR HANDLING---------------#
 # Define Script and handle errors
 def main(argv):
     parser = argparse.ArgumentParser()
@@ -65,7 +30,7 @@ def main(argv):
             parser.add_argument('output_projection', nargs='+')
             parser.add_argument('input_directory', nargs='+')
         elif sys.argv[1] == '-h':
-            print('ECOSTRESS_Georeference.py <output_projection> <input_directory>')
+            print('ECOSTRESS_swath2grid.py <output_projection> <input_directory>')
             sys.exit()
         elif "'" in sys.argv[2] or '"' in sys.argv[1]:
             parser.error('Do not include quotes in input directory argument')
@@ -77,20 +42,20 @@ def main(argv):
             parser.error("output projection options include 'UTM' and 'GEO'")
     except getopt.GetoptError:
         print('error: Invalid option passed as argument')      
-        print('ECOSTRESS_Georeference.py <output_projection> <input_directory>')
+        print('ECOSTRESS_swath2grid.py <output_projection> <input_directory>')
         sys.exit(2)
     try:
         os.chdir(sys.argv[2])
     except FileNotFoundError:
         print('error: input_directory provided does not exist or was not found')
         sys.exit(2)
-#-----------------------SET ARGUMENTS TO VARIABLES-----------------------------
+#-----------------------SET ARGUMENTS TO VARIABLES----------------------------#
     # Set input/current working directory from user defined argument
     inDir = sys.argv[2] # inDir = 'D:/Sci_Int/Tutorials/ECOSTRESS/' 
     os.chdir(inDir)
     crsIN = sys.argv[1] # crsIN = ['UTM','GEO']
 
-#----------------------SET UP WORKSPACE----------------------------------------
+#----------------------SET UP WORKSPACE---------------------------------------#
     # Create and set output directory
     outDir = os.path.normpath((os.path.split(inDir)[0] + os.sep + 'output'))+ os.sep
     if not os.path.exists(outDir):os.makedirs(outDir)
@@ -98,7 +63,7 @@ def main(argv):
     # Create a list of ECOSTRESS HDF-EOS5 files in the directory
     geoList = [f for f in os.listdir() if f.endswith('.h5') and 'GEO' in f] # Geo Files
     ecoList = [f for f in os.listdir() if f.endswith('.h5') and 'GEO' not in f] # ECOSTRESS Files    
-#----------------------DEFINE FUNCTIONS----------------------------------------
+#----------------------DEFINE FUNCTIONS---------------------------------------#
     # Write function to determine which UTM zone to use:
     def utmLookup(lat, lon):
         utm = str((math.floor((lon + 180) / 6 ) % 60) + 1)
@@ -109,11 +74,11 @@ def main(argv):
         else:
             epsg_code = '327' + utm
         return epsg_code
-#-------------------------GEOREFERENCING---------------------------------------    
+#-------------------------GEOREFERENCING--------------------------------------#    
     # Batch process all files in the input directory
     i = 0
     for e in ecoList:
-#------------------------IMPORT ECOSTRESS FILE---------------------------------
+#------------------------IMPORT ECOSTRESS FILE--------------------------------#
         i += 1
         print('Processing: {} ({} of {})'.format(e, str(i), str(len(ecoList))))
         f = h5py.File(e)         # Read in the ECOSTRESS Data HDF-EOS5 file
@@ -123,13 +88,13 @@ def main(argv):
 
         # Search for relevant SDS inside data file
         ecoSDS = [str(o) for o in eco_objs if isinstance(f[o],h5py.Dataset)] 
-#--------------------------CONVERT SWATH DATA TO GRID--------------------------    
+#--------------------------CONVERT SWATH DATA TO GRID-------------------------#    
         # ALEXI products are already georeferenced, bypass section below
         if 'ALEXI_USDA' in e: 
             cols = 3000
             rows = 3000
         else:
-#------------------------IMPORT GEOLOCATION FILE-------------------------------
+#------------------------IMPORT GEOLOCATION FILE------------------------------#
             geo = [g for g in geoList if e[-37:] in g] # Use subset name to match GEO file
             if 'L1B_MAP' in e: geo = 'T'               # L1B Map contains lat/lon arrays
             if len(geo) != 0:                          # Only proceed if GEO file found
@@ -146,7 +111,7 @@ def main(argv):
                 
                 lat = g[latSD[0]].value.astype(np.float) # Open Lat array
                 lon = g[lonSD[0]].value.astype(np.float) # Open Lon array
-#-----------------------SWATH TO GEOREFERENCED ARRAYS--------------------------               
+#-----------------------SWATH TO GEOREFERENCED ARRAYS-------------------------#               
                 swathDef = geom.SwathDefinition(lons=lon, lats=lat)
                 datum = 'WGS84'
                 mid = [int(lat.shape[1]/2)-1, int(lat.shape[0]/2)-1]
@@ -192,7 +157,7 @@ def main(argv):
                     
                 areaDef = geom.AreaDefinition(epsg, projName, proj, projDict, cols, rows, areaExtent)
                 index, outdex, indexArr, distArr = kdt.get_neighbour_info(swathDef, areaDef, 210, neighbours=1)
-#-----------------------LOOP THROUGH SDS AND APPLY GEOREFERENCING--------------
+#-----------------------LOOP THROUGH SDS AND APPLY GEOREFERENCING-------------#
         for s in ecoSDS: 
             if len(f[s].shape) > 1:  # Omit NA layers/objs
                 if f[s].shape[0] > 1 and f[s].shape[1] > 1:  # Omit NA layers/objs
@@ -227,7 +192,7 @@ def main(argv):
                             gt = [areaDef.area_extent[0],ps,0,areaDef.area_extent[3],0,-ps]
                         except ValueError:
                             continue             
-#-----------------------------EXPORT GEOTIFFS----------------------------------                    
+#-----------------------------EXPORT GEOTIFFS---------------------------------#                    
                     if 'ALEXI_USDA' in e and crsIN == 'GEO': # For this case, export to UTM, then convert to GEO
                         tempName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], 'TEMP')
                         outName = tempName
