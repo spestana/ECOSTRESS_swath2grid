@@ -24,8 +24,7 @@ The ECOSTRESS_Georeference.py script converts ECOSTRESS swath data products, sto
   + `math`
   + `pyresample`
   + `numpy`      
-
-For a complete list of required packages, check out `windowsOS.yml` (Windows users) or `macOS.yml` (MacOS users).
+For a complete list of required packages, check out `windowsOS.yml` (Windows users) or `macOS.yml` (MacOS users).  
 ---
 # Procedures:
 > #### 1.	Copy/clone ECOSTRESS_Georeference.py from LP DAAC Data User Resources Repository  
