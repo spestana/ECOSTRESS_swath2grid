@@ -34,7 +34,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 > #### 5.	Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt/terminal window  
   > 1.  `activate <python environment name>`
 > #### 6.	Once activated, run the script with the following in your Command Prompt/terminal window:
-  > 1.  `python ECOSTRESS_swath2grid.py <insert reprojection desired. Options: 'GEO' and 'UTM'> <insert input directory with ECOSTRESS files here>`
+  > 1.  `python ECOSTRESS_swath2grid.py <insert reprojection desired. Options: GEO and UTM> <insert input directory with ECOSTRESS files here>`
   > 2. Ex:   `python ECOSTRESS_swath2grid.py GEO C:/users/johndoe/ASTERL1T/`
 ---
 # Contact Information:
@@ -43,7 +43,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 **Voice:** +1-866-573-3222  
 **Organization:** Land Processes Distributed Active Archive Center (LP DAAC)  
 **Website:** https://lpdaac.usgs.gov/  
-**Date last modified:** 10-16-2018  
+**Date last modified:** 10-17-2018  
 
 ¹Innovate!, Inc., contractor to the U.S. Geological Survey, Earth Resources Observation and Science (EROS) Center,  
  Sioux Falls, South Dakota, USA. Work performed under USGS contract G15PD00467 for LP DAAC².  
