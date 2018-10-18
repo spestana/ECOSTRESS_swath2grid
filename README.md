@@ -27,15 +27,16 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
   + For a complete list of required packages, check out `windowsOS.yml` (Windows users) or `macOS.yml` (MacOS users).  
 ---
 # Procedures:
-> #### 1.	Copy/clone ECOSTRESS_swath2grid.py from LP DAAC Data User Resources Repository  
-> #### 2.	Download ECOSTRESS data and corresponding ECO1BGEO files from the LP DAAC to a local directory (see above for applicable products)  
+> #### 1.	Copy/clone [ECOSTRESS_swath2grid.py](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse/ECOSTRESS_swath2grid.py) from LP DAAC Data User Resources Repository  
+> #### 2.	Download ECOSTRESS data and corresponding ECO1BGEO files from the [LP DAAC Data Pool](https://e4ftl01.cr.usgs.gov/) or [Earthdata Search Client](http://search.earthdata.nasa.gov) to a local directory (see above for applicable products)  
 > #### 3. Set up a Python environment on your OS (recommended to use yml file for your OS available from the LP DAAC User Resources Repository)
+  > 1.  Recommended setup is to use the yml file for your OS available above. This mechanism for creating Python environments is specific to [Conda](https://conda.io/docs/user-guide/install/download.html). [Additional information](https://conda.io/docs/user-guide/tasks/manage-environments.html) on setting up Python Environments with Conda.
 > #### 4.	Open a Command Prompt/terminal window and navigate to the directory where you downloaded the ECOSTRESS_swath2grid.py script  
 > #### 5.	Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt/terminal window  
   > 1.  `activate <python environment name>`
 > #### 6.	Once activated, run the script with the following in your Command Prompt/terminal window:
-  > 1.  `python ECOSTRESS_swath2grid.py <insert reprojection desired. Options: GEO and UTM> <insert input directory with ECOSTRESS files here>`
-  > 2. Ex:   `python ECOSTRESS_swath2grid.py GEO C:/users/johndoe/ASTERL1T/`
+  > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired. Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here>`
+  > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:/users/johndoe/ASTERL1T/`
 ---
 # Contact Information:
 #### Author: Cole Krehbiel¹   
@@ -43,7 +44,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 **Voice:** +1-866-573-3222  
 **Organization:** Land Processes Distributed Active Archive Center (LP DAAC)  
 **Website:** https://lpdaac.usgs.gov/  
-**Date last modified:** 10-17-2018  
+**Date last modified:** 10-18-2018  
 
 ¹Innovate!, Inc., contractor to the U.S. Geological Survey, Earth Resources Observation and Science (EROS) Center,  
  Sioux Falls, South Dakota, USA. Work performed under USGS contract G15PD00467 for LP DAAC².  
