@@ -20,6 +20,8 @@ from osgeo import gdal, gdal_array, gdalconst, osr
 parser = argparse.ArgumentParser(description='Performs ECOSTRESS Swath to Grid Conversion')
 parser.add_argument('--proj', required=True, choices=['UTM','GEO'], help='Projection desired for output GeoTIFFs')
 parser.add_argument('--dir', required=True, help='Local directory containing ECOSTRESS Swath files to be processed')
+parser.add_argument('--utmzone', required=False, help='UTM zone (EPSG Code) desired for all outputs--only required if needed to \
+                    override default UTM zone which is assigned based on the center location for each ECOSTRESS granule')
 args = parser.parse_args()
 
 #-----------------------SET ARGUMENTS TO VARIABLES----------------------------#
@@ -32,7 +34,7 @@ except FileNotFoundError:
     sys.exit(2)   
     
 crsIN = args.proj # Options include 'UTM' or 'GEO'
-    
+
 #----------------------SET UP WORKSPACE---------------------------------------#
 # Create and set output directory
 outDir = os.path.normpath((os.path.split(inDir)[0] + os.sep + 'output'))+ os.sep
@@ -54,6 +56,8 @@ def utmLookup(lat, lon):
         epsg_code = '327' + utm
     return epsg_code
 
+if args.utmzone is not None and args.utmzone[0:3] != '326' and args.utmzone[0:3] != '327':
+    parser.error('--utmzone requires the EPSG code (http://spatialreference.org/ref/epsg/) for a UTM zone, and only WGS84 datum is supported')
 #------------------------IMPORT ECOSTRESS FILE--------------------------------# 
 # Batch process all files in the input directory
 i = 0
@@ -93,7 +97,8 @@ for e in ecoList:
             midLat, midLon = lat[mid[0]][mid[1]], lon[mid[0]][mid[1]]    
             
             if crsIN == 'UTM':
-                epsg = utmLookup(midLat, midLon) # Determine UTM zone that center of scene is in
+                if args.utmzone is None: epsg = utmLookup(midLat, midLon) # Determine UTM zone that center of scene is in
+                else: epsg = args.utmzone
                 epsgConvert = pyproj.Proj("+init=EPSG:{}".format(epsg))
                 proj, pName = 'utm', 'Universal Transverse Mercator'
                 projDict = {'proj': proj,'zone':epsg[-2:],'ellps': 'WGS84', 'datum': 'WGS84', 'units': 'm'}

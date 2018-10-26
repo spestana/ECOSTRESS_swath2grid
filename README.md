@@ -21,24 +21,45 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
   + `GDAL`
   + `h5py`
   + `pyproj`
-  + `math`
   + `pyresample`
   + `numpy`      
   + For a complete list of required packages, check out `windowsOS.yml` (Windows users) or `macOS.yml` (MacOS users).  
 ---
 # Procedures:
-> #### 1.	Copy/clone [ECOSTRESS_swath2grid.py](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse/ECOSTRESS_swath2grid.py) from LP DAAC Data User Resources Repository  
-> #### 2.	Download ECOSTRESS data and corresponding ECO1BGEO files from the [LP DAAC Data Pool](https://e4ftl01.cr.usgs.gov/) or [Earthdata Search Client](http://search.earthdata.nasa.gov) to a local directory (see above for applicable products)  
-> #### 3. Set up a Python environment on your OS (recommended to use yml file for your OS available from the LP DAAC User Resources Repository)
-  > 1.  Recommended setup is to use the yml file for your OS available above. This mechanism for creating Python environments is specific to [Conda](https://conda.io/docs/user-guide/install/download.html). [Additional information](https://conda.io/docs/user-guide/tasks/manage-environments.html) on setting up Python Environments with Conda.  
-  > 2. Ex: `conda env create -f macOS.yml` (windowsOS.yml for windows users)
-> #### 4.	Open a Command Prompt/terminal window and navigate to the directory where you downloaded the ECOSTRESS_swath2grid.py script  
-> #### 5.	Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt/terminal window  
-  > 1.  `activate <python environment name>`  
-  > 2. Ex (MacOS): `source activate ecostress-py` (ecostress-py is an example environment name)
-> #### 6.	Once activated, run the script with the following in your Command Prompt/terminal window:
-  > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired. Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here>`
+## Getting Started:
+> #### 1.	Download ECOSTRESS higher level products and corresponding ECO1BGEO files from the [LP DAAC Data Pool](https://e4ftl01.cr.usgs.gov/) or [Earthdata Search Client](http://search.earthdata.nasa.gov) to a local directory (see above for applicable products)
+> #### 2.	Copy/clone/download  [ECOSTRESS_swath2grid.py](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse/ECOSTRESS_swath2grid.py) from LP DAAC Data User Resources Repository   
+## Python Environment Setup
+> #### 1. It is recommended to use [Conda](https://conda.io/docs/), an environment manager to set up a compatible Python environment. Download Conda for your OS here: https://www.anaconda.com/download/. Once you have Conda installed, Follow the instructions below to successfully setup a Python environment on MacOS or Windows.
+> #### 2. Windows Setup
+> 1.  Download the [WindowsEnvironment.zip](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/raw/WindowsEnvironment.zip?at=refs%2Fheads%2Fmaster) file from the repository, and unzip the contents of file into a local directory.
+> 2. Open the `windowsOS.yml` file with your favorite text editor, change the prefix to match the location of Anaconda on your OS, and save the file.  
+  > 2a. Ex: `C:\Username\Anaconda3\envs\ecostress` --replace 'Username' with the location of your Conda installation (leave `Anaconda3\envs\ecostress`)  
+  > 2b. Tip: search for the location of Conda on your OS by opening the Command Prompt and typing `dir Anaconda3 /AD /s`
+> 3. Navigate to the unzipped directory in your Command Prompt, and type `conda env create -f windowsOS.yml`
+> 4. Navigate to the directory where you downloaded the `ECOSTRESS_swath2grid.py` script
+> 5. Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt  
+  > 1. Type  `activate ecostress`  
+> #### 3. MacOS Setup
+> 1.  Download the [macOS.yml](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse/macOS.yml) file from the repository.
+> 2. Open the `macOS.yml` file with your favorite text editor, change the prefix to match the location of Anaconda on your OS, and save the file.  
+  > 2a. Ex: `/anaconda3/envs/ecostress` if you downloaded conda under a local user directory, add `/Users/<insert username>` before `anaconda3` (leave `Anaconda3/envs/ecostress`)  
+  > 2b. Tip: search for the location of Conda on your OS by opening the terminal and typing `find / -name directoryname -type d`
+> 3. Navigate to the directory containing the `macOS.yml` file in your Command Prompt, and type `conda env create -f macOS.yml`
+> 4. Navigate to the directory where you downloaded the `ECOSTRESS_swath2grid.py` script
+> 5. Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt   
+    > 5a. Type `source activate ecostress`  
+
+[Additional information](https://conda.io/docs/user-guide/tasks/manage-environments.html) on setting up and managing Conda environments.
+## Script Execution
+> #### 1.	Once you have set up your MacOS/Windows environment and it has been activated, run the script with the following in your Command Prompt/terminal window:
+  > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired. Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here>`  
+    > 1a. GEO = Geographic lat/lon, EPSG code 4326  
+    >1b. UTM = Universal Transverse Mercator Zones (north/south) with WGS84 datum
   > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:/users/johndoe/ASTERL1T/`
+  > 3. If UTM is selected, the script will calculate the UTM zone by using the location of the center of each ECOSTRESS granule. If you prefer to set the UTM zone manually, you can do so by adding the optional argument `--utmzone <insert EPSG code for desired zone>`. This optional argument will override the default functionality for users who desire all ECOSTRESS granules to be in a common UTM projection, regardless of the center location of the granule.   
+    > 3a. Ex: `python ECOSTRESS_swath2grid.py --proj UTM --dir <insert input directory with ECOSTRESS files here> --utmzone <insert EPSG code for desired UTM zone, i.e. 32610>`   
+    > 3b. You can look up EPSG codes for UTM zones at: http://spatialreference.org/, note that only WGS84 datum is supported, and thus EPSG codes for UTM north zones will begin with `326` and utm south zones with `327`
 ---
 # Contact Information:
 #### Author: Cole Krehbiel¹   
@@ -46,7 +67,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 **Voice:** +1-866-573-3222  
 **Organization:** Land Processes Distributed Active Archive Center (LP DAAC)  
 **Website:** https://lpdaac.usgs.gov/  
-**Date last modified:** 10-18-2018  
+**Date last modified:** 10-26-2018  
 
 ¹Innovate!, Inc., contractor to the U.S. Geological Survey, Earth Resources Observation and Science (EROS) Center,  
  Sioux Falls, South Dakota, USA. Work performed under USGS contract G15PD00467 for LP DAAC².  
