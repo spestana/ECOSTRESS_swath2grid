@@ -132,7 +132,7 @@ for e in ecoList:
             index, outdex, indexArr, distArr = kdt.get_neighbour_info(swathDef, areaDef, 210, neighbours=1)
         else:
             print('ECO1BGEO File not found for {}'.format(e))
-            
+            continue
 #--------LOOP THROUGH SDS CONVERT SWATH2GRID AND APPLY GEOREFERENCING---------#
     for s in ecoSDS: 
         if f[s].shape == dims: # Omit NA layers/objs
