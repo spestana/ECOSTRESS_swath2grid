@@ -20,6 +20,7 @@ from osgeo import gdal, gdal_array, gdalconst, osr
 parser = argparse.ArgumentParser(description='Performs ECOSTRESS Swath to Grid Conversion')
 parser.add_argument('--proj', required=True, choices=['UTM','GEO'], help='Projection desired for output GeoTIFFs')
 parser.add_argument('--dir', required=True, help='Local directory containing ECOSTRESS Swath files to be processed')
+parser.add_argument('--sds', required=False, help='Specific science datasets (SDS) to extract out of ECOSTRESS Granules (see UPDATE for a list of available SDS')
 parser.add_argument('--utmzone', required=False, help='UTM zone (EPSG Code) desired for all outputs--only required if needed to \
                     override default UTM zone which is assigned based on the center location for each ECOSTRESS granule')
 args = parser.parse_args()
@@ -72,9 +73,20 @@ for e in ecoList:
     # Search for relevant SDS inside data file
     ecoSDS = [str(o) for o in eco_objs if isinstance(f[o],h5py.Dataset)] 
     
+    # Added functionality for dataset subsetting (--sds argument)
+    if args.sds is not None:
+        sds = args.sds.split(',')
+        ecoSDS = [e for e in ecoSDS if e.endswith(tuple(sds))]
+        if ecoSDS == []:
+            print('No matching SDS layers found for {}'.format(e))
+            continue
 #--------------------------CONVERT SWATH DATA TO GRID-------------------------#  
     if 'ALEXI_USDA' in e: # ALEXI products already gridded, bypass below
         cols, rows, dims = 3000, 3000, (3000,3000)
+        ecoSDS = [s for s in ecoSDS if f[s].shape == dims] # Omit NA layers/objs
+        if ecoSDS == []:
+            print('No matching SDS layers found for {}'.format(e))
+            continue
     else:
 #------------------------IMPORT GEOLOCATION FILE------------------------------#
         geo = [g for g in geoList if e[-37:] in g] # Match GEO filename
@@ -90,7 +102,10 @@ for e in ecoList:
             lat = g[latSD[0]].value.astype(np.float) # Open Lat array
             lon = g[lonSD[0]].value.astype(np.float) # Open Lon array
             dims = lat.shape
-            
+            ecoSDS = [s for s in ecoSDS if f[s].shape == dims] # Omit NA layers/objs
+            if ecoSDS == []:
+                print('No matching SDS layers found for {}'.format(e))
+                continue        
 #-----------------------SWATH TO GEOREFERENCED ARRAYS-------------------------#               
             swathDef = geom.SwathDefinition(lons=lon, lats=lat)
             mid = [int(lat.shape[1]/2)-1, int(lat.shape[0]/2)-1]
@@ -135,89 +150,88 @@ for e in ecoList:
             continue
 #--------LOOP THROUGH SDS CONVERT SWATH2GRID AND APPLY GEOREFERENCING---------#
     for s in ecoSDS: 
-        if f[s].shape == dims: # Omit NA layers/objs
-            ecoSD = f[s].value # Create array and read dimensions            
+        ecoSD = f[s].value # Create array and read dimensions            
+        
+        # Read SDS Attributes if available
+        try:
+            fv = int(f[s].attrs['_FillValue'])
+        except KeyError:
+            fv = None
+        except ValueError:
+            fv = f[s].attrs['_FillValue'][0]
+        try:
+            sf = f[s].attrs['_Scale'][0]
+        except:
+            sf = 1   
             
-            # Read SDS Attributes if available
+        if 'ALEXI_USDA' in e:  # USDA Contains proj info in metadata
+            if 'ET' in e: metaName = 'L3_ET_ALEXI Metadata'
+            else: metaName = 'L4_ESI_ALEXI Metadata'
+            gt = f['{}/Geotransform'.format(metaName)].value
+            proj = f['{}/OGC_Well_Known_Text'.format(metaName)].value.decode('UTF-8')
+            sdGEO = ecoSD
+        else:
             try:
-                fv = int(f[s].attrs['_FillValue'])
-            except KeyError:
-                fv = None
+                # Perform kdtree resampling (swath 2 grid conversion) 
+                sdGEO = kdt.get_sample_from_neighbour_info('nn', areaDef.shape, ecoSD ,index, outdex, indexArr, fill_value=fv)                        
+                ps = np.min([areaDef.pixel_size_x, areaDef.pixel_size_y]) 
+                gt = [areaDef.area_extent[0],ps,0,areaDef.area_extent[3],0,-ps]
             except ValueError:
-                fv = f[s].attrs['_FillValue'][0]
-            try:
-                sf = f[s].attrs['_Scale'][0]
-            except:
-                sf = 1   
-                
-            if 'ALEXI_USDA' in e:  # USDA Contains proj info in metadata
-                if 'ET' in e: metaName = 'L3_ET_ALEXI Metadata'
-                else: metaName = 'L4_ESI_ALEXI Metadata'
-                gt = f['{}/Geotransform'.format(metaName)].value
-                proj = f['{}/OGC_Well_Known_Text'.format(metaName)].value.decode('UTF-8')
-                sdGEO = ecoSD
-            else:
-                try:
-                    # Perform kdtree resampling (swath 2 grid conversion) 
-                    sdGEO = kdt.get_sample_from_neighbour_info('nn', areaDef.shape, ecoSD ,index, outdex, indexArr, fill_value=fv)                        
-                    ps = np.min([areaDef.pixel_size_x, areaDef.pixel_size_y]) 
-                    gt = [areaDef.area_extent[0],ps,0,areaDef.area_extent[3],0,-ps]
-                except ValueError:
-                    continue 
-                
-            # Apply Scale Factor
-            if sf != 1:
-                sdGEO = sdGEO*sf
-                sdGEO[sdGEO == fv*sf] = fv    
-                
-#-----------------------------EXPORT GEOTIFFS---------------------------------#                    
-            # For USDA, export to UTM, then convert to GEO
-            if 'ALEXI_USDA' in e and crsIN == 'GEO': 
-                tempName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], 'TEMP')
-                outName = tempName
-            else:
-                outName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], crsIN)
+                continue 
             
-            # Get driver, specify dimensions, define and set output geotransform
-            height, width = sdGEO.shape  # Define geotiff dimensions
-            driv =  gdal.GetDriverByName('GTiff')
-            dataType = gdal_array.NumericTypeCodeToGDALTypeCode(sdGEO.dtype)
-            d = driv.Create(outName, width, height, 1, dataType)
-            d.SetGeoTransform(gt)
-             
-            # Create and set output projection, write output array data
-            if 'ALEXI_USDA' in e: d.SetProjection(proj)
-            else:
-                # Define target SRS
-                srs = osr.SpatialReference()
-                srs.ImportFromEPSG(int(epsg))
-                d.SetProjection(srs.ExportToWkt())
-            band = d.GetRasterBand(1)                                                 
-            band.WriteArray(sdGEO)  
+        # Apply Scale Factor
+        if sf != 1:
+            sdGEO = sdGEO*sf
+            sdGEO[sdGEO == fv*sf] = fv    
+            
+#-----------------------------EXPORT GEOTIFFS---------------------------------#                    
+        # For USDA, export to UTM, then convert to GEO
+        if 'ALEXI_USDA' in e and crsIN == 'GEO': 
+            tempName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], 'TEMP')
+            outName = tempName
+        else:
+            outName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], crsIN)
+        
+        # Get driver, specify dimensions, define and set output geotransform
+        height, width = sdGEO.shape  # Define geotiff dimensions
+        driv =  gdal.GetDriverByName('GTiff')
+        dataType = gdal_array.NumericTypeCodeToGDALTypeCode(sdGEO.dtype)
+        d = driv.Create(outName, width, height, 1, dataType)
+        d.SetGeoTransform(gt)
+         
+        # Create and set output projection, write output array data
+        if 'ALEXI_USDA' in e: d.SetProjection(proj)
+        else:
+            # Define target SRS
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(int(epsg))
+            d.SetProjection(srs.ExportToWkt())
+        band = d.GetRasterBand(1)                                                 
+        band.WriteArray(sdGEO)  
 
-            # Define fill value if it exists, if not, set to mask fill value 
-            if fv != None and fv != 'NaN': 
-                band.SetNoDataValue(fv)
-            else:
-                try:
-                    band.SetNoDataValue(sdGEO.fill_value)     
-                except AttributeError:
-                    pass
-            band.FlushCache()       
-            d, band = None, None
+        # Define fill value if it exists, if not, set to mask fill value 
+        if fv != None and fv != 'NaN': 
+            band.SetNoDataValue(fv)
+        else:
+            try:
+                band.SetNoDataValue(sdGEO.fill_value)     
+            except AttributeError:
+                pass
+        band.FlushCache()       
+        d, band = None, None
 
-            if 'ALEXI_USDA' in e and crsIN == 'GEO':
-                # Define target SRS              
-                srs = osr.SpatialReference()
-                srs.ImportFromEPSG(int('4326'))
-                srs = srs.ExportToWkt()
+        if 'ALEXI_USDA' in e and crsIN == 'GEO':
+            # Define target SRS              
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(int('4326'))
+            srs = srs.ExportToWkt()
 
-                # Open temp file, get default vals for target dims & geotransform
-                dd = gdal.Open(tempName, gdalconst.GA_ReadOnly)
-                vrt = gdal.AutoCreateWarpedVRT( dd, None, srs, gdal.GRA_NearestNeighbour, 0.125)
-                
-                # Create the final warped raster
-                outName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], crsIN)
-                d = driv.CreateCopy(outName, vrt)
-                dd, d, vrt = None, None, None
-                os.remove(tempName)
+            # Open temp file, get default vals for target dims & geotransform
+            dd = gdal.Open(tempName, gdalconst.GA_ReadOnly)
+            vrt = gdal.AutoCreateWarpedVRT( dd, None, srs, gdal.GRA_NearestNeighbour, 0.125)
+            
+            # Create the final warped raster
+            outName = '{}{}_{}_{}.tif'.format(outDir,ecoName,s.rsplit('/')[-1], crsIN)
+            d = driv.CreateCopy(outName, vrt)
+            dd, d, vrt = None, None, None
+            os.remove(tempName)
