@@ -63,7 +63,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
     > 3a. Ex: `python ECOSTRESS_swath2grid.py --proj UTM --dir <insert input directory with ECOSTRESS files here> --utmzone <insert EPSG code for desired UTM zone, i.e. 32610>`   
     > 3b. You can look up EPSG codes for UTM zones at: http://spatialreference.org/, note that only WGS84 datum is supported, and thus EPSG codes for UTM north zones will begin with `326` and utm south zones with `327`
   > 4. The default functionality is to export each science dataset (SDS) layer contained in an ECOSTRESS product as a GeoTIFF. If you prefer to only export one or more layers, you can do so by adding the optional argument `--sds <insert SDS layer names desired>` (comma separated with no spaces,see below for specific SDS layer names by product)
-    > 4a. Ex: `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS --SDS LST,QC,Emis1`
+    > 4a. Ex: `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS --sds LST,QC,Emis1`
     > 4b. See below for specific SDS layer names by product.
 ## Subsetting Layers:
 To use the `--sds` optional command line argument in order to select a subset of science datasets from an ECOSTRESS granule, you will need to submit 1 or more SDS layers names into the `--sds ` argument exactly as they appear in the list below.
