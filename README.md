@@ -46,7 +46,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 > 1.  Download the [macOS.yml](https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse/macOS.yml) file from the repository.
 > 2. Open the `macOS.yml` file with your favorite text editor, change the prefix to match the location of Anaconda on your OS, and save the file.  
   > 2a. Ex: `/anaconda3/envs/ecostress` if you downloaded conda under a local user directory, add `/Users/<insert username>` before `anaconda3` (leave `Anaconda3/envs/ecostress`)  
-  > 2b. Tip: search for the location of Conda on your OS by opening the terminal and typing `find / -name directoryname -type d`
+  > 2b. Tip: search for the location of Conda on your OS by opening the terminal and typing `which anaconda`
 > 3. Navigate to the directory containing the `macOS.yml` file in your Command Prompt, and type `conda env create -f macOS.yml`
 > 4. Navigate to the directory where you downloaded the `ECOSTRESS_swath2grid.py` script
 > 5. Activate ECOSTRESS Python environment (created in step 3) in the Command Prompt   
@@ -58,7 +58,7 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
   > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired, Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here>`  
     > 1a. GEO = Geographic lat/lon, EPSG code 4326  
     >1b. UTM = Universal Transverse Mercator Zones (north/south) with WGS84 datum
-  > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:/users/johndoe/ASTERL1T/`
+  > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS\`
   > 3. If UTM is selected, the script will calculate the UTM zone by using the location of the center of each ECOSTRESS granule. If you prefer to set the UTM zone manually, you can do so by adding the optional argument `--utmzone <insert EPSG code for desired zone>`. This optional argument will override the default functionality for users who desire all ECOSTRESS granules to be in a common UTM projection, regardless of the center location of the granule.   
     > 3a. Ex: `python ECOSTRESS_swath2grid.py --proj UTM --dir <insert input directory with ECOSTRESS files here> --utmzone <insert EPSG code for desired UTM zone, i.e. 32610>`   
     > 3b. You can look up EPSG codes for UTM zones at: http://spatialreference.org/, note that only WGS84 datum is supported, and thus EPSG codes for UTM north zones will begin with `326` and utm south zones with `327`

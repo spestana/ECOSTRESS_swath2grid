@@ -176,7 +176,10 @@ for i, e in enumerate(ecoList):
         except KeyError:
             fv = None
         except ValueError:
-            fv = f[s].attrs['_FillValue'][0]
+            if f[s].attrs['_FillValue'] == b'n/a':
+                fv = None
+            else:
+                fv = f[s].attrs['_FillValue'][0]
         try:
             sf = f[s].attrs['_Scale'][0]
         except:
@@ -207,7 +210,8 @@ for i, e in enumerate(ecoList):
         sdGEO = sdGEO * sf + add_off
 
         # Set fill value
-        sdGEO[sdGEO == fv * sf + add_off] = fv
+        if fv is not None:
+            sdGEO[sdGEO == fv * sf + add_off] = fv
 
 # -------------------------------------EXPORT GEOTIFFS------------------------------------------- #
         # For USDA, export to UTM, then convert to GEO
@@ -243,6 +247,9 @@ for i, e in enumerate(ecoList):
                 band.SetNoDataValue(sdGEO.fill_value)
             except AttributeError:
                 pass
+            except TypeError:
+                pass
+            
         band.FlushCache()
         d, band = None, None
 
