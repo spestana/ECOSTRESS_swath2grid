@@ -3,7 +3,7 @@
 ---------------------------------------------------------------------------------------------------
 ECOSTRESS Swath to Grid Conversion Script
 Author: Cole Krehbiel
-Last Updated: 01/29/2019
+Last Updated: 03/25/2019
 See README for additional information:
 https://git.earthdata.nasa.gov/projects/LPDUR/repos/ecostress_swath2grid/browse
 ---------------------------------------------------------------------------------------------------
@@ -16,9 +16,11 @@ import sys
 import argparse
 import math
 import numpy as np
+import warnings
 from pyresample import geometry as geom
 from pyresample import kd_tree as kdt
 from osgeo import gdal, gdal_array, gdalconst, osr
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 # --------------------------COMMAND LINE ARGUMENTS AND ERROR HANDLING---------------------------- #
 # Set up argument and error handling
@@ -102,7 +104,7 @@ for i, e in enumerate(ecoList):
             continue
     else:
 # ---------------------------------IMPORT GEOLOCATION FILE--------------------------------------- #
-        geo = [g for g in geoList if e[-37:] in g]  # Match GEO filename
+        geo = [g for g in geoList if e[-37:-10] in g]  # Match GEO filename--updated to exclude build ID
         if len(geo) != 0 or 'L1B_MAP' in e:         # Proceed if GEO/MAP file
             if 'L1B_MAP' in e:
                 g = f                               # Map file contains lat/lon
