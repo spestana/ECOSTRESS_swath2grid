@@ -69,14 +69,6 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 To use the `--sds` optional command line argument in order to select a subset of science datasets from an ECOSTRESS granule, you will need to submit 1 or more SDS layers names into the `--sds ` argument exactly as they appear in the list below.
 > Example for a single layer: `--sds LST`
 > Example for multiple layers: `--sds ETcanopy,ETdaily,ETinst` **(make sure the SDS layers are comma separated, with no spaces between SDS!)**
-## Changing Resampling/Interpolation Methods:
-(Experimental)
-Use the --r option to select one of the following resampling methods. If no method is selected, it will default to the nearest nehighbor (kdtree) method:
-  - `kdtnn`
-  - `gauss`
-  - `bilinear`
-  - `none`
-  
 **1.	ECO1BMAPRAD**  
   -	data_quality_1  
   -	data_quality_2  
@@ -177,6 +169,14 @@ Use the --r option to select one of the following resampling methods. If no meth
 
 **10.	ECO4WUE**  
   -	WUEavg  
+
+## Changing Resampling/Interpolation Methods:
+(Experimental)
+Use the --r option to select one of the following resampling methods. If no method is selected, it will default to the nearest nehighbor (kdtree) method:
+  - `kdtnn`
+  - `gauss`
+  - `bilinear`
+  - `none`
 
 ---
 # Contact Information:
