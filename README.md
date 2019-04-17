@@ -76,6 +76,7 @@ Use the --r option to select one of the following resampling methods. If no meth
   - `gauss`
   - `bilinear`
   - `none`
+  
 **1.	ECO1BMAPRAD**  
   -	data_quality_1  
   -	data_quality_2  
