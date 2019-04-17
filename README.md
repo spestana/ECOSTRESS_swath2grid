@@ -55,21 +55,27 @@ The ECOSTRESS_swath2grid.py script converts ECOSTRESS swath data products, store
 [Additional information](https://conda.io/docs/user-guide/tasks/manage-environments.html) on setting up and managing Conda environments.
 ## Script Execution
 > #### 1.	Once you have set up your MacOS/Windows environment and it has been activated, run the script with the following in your Command Prompt/terminal window:
-  > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired, Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here>`  
+  > 1.  `python ECOSTRESS_swath2grid.py --proj <insert reprojection desired, Options: GEO and UTM> --dir <insert input directory with ECOSTRESS files here> --geodir <insert input directory with ECOSTRESS L1B_GEO files here>`  
     > 1a. GEO = Geographic lat/lon, EPSG code 4326  
     >1b. UTM = Universal Transverse Mercator Zones (north/south) with WGS84 datum
-  > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS\`
+  > 2. Ex:   `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS\ --geodir C:\Users\ECOSTRESS\L1B_GEO\`
   > 3. If UTM is selected, the script will calculate the UTM zone by using the location of the center of each ECOSTRESS granule. If you prefer to set the UTM zone manually, you can do so by adding the optional argument `--utmzone <insert EPSG code for desired zone>`. This optional argument will override the default functionality for users who desire all ECOSTRESS granules to be in a common UTM projection, regardless of the center location of the granule.   
-    > 3a. Ex: `python ECOSTRESS_swath2grid.py --proj UTM --dir <insert input directory with ECOSTRESS files here> --utmzone <insert EPSG code for desired UTM zone, i.e. 32610>`   
+    > 3a. Ex: `python ECOSTRESS_swath2grid.py --proj UTM --dir <insert input directory with ECOSTRESS files here> --geodir <insert input directory with ECOSTRESS L1B_GEO files here> --utmzone <insert EPSG code for desired UTM zone, i.e. 32610>`   
     > 3b. You can look up EPSG codes for UTM zones at: http://spatialreference.org/, note that only WGS84 datum is supported, and thus EPSG codes for UTM north zones will begin with `326` and utm south zones with `327`
   > 4. The default functionality is to export each science dataset (SDS) layer contained in an ECOSTRESS product as a GeoTIFF. If you prefer to only export one or more layers, you can do so by adding the optional argument `--sds <insert SDS layer names desired>` (comma separated with no spaces,see below for specific SDS layer names by product)
-    > 4a. Ex: `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS --sds LST,QC,Emis1`
+    > 4a. Ex: `python ECOSTRESS_swath2grid.py --proj GEO --dir C:\Users\ECOSTRESS --geodir C:\Users\ECOSTRESS\L1B_GEO --sds LST,QC,Emis1`
     > 4b. See below for specific SDS layer names by product.
 ## Subsetting Layers:
 To use the `--sds` optional command line argument in order to select a subset of science datasets from an ECOSTRESS granule, you will need to submit 1 or more SDS layers names into the `--sds ` argument exactly as they appear in the list below.
 > Example for a single layer: `--sds LST`
 > Example for multiple layers: `--sds ETcanopy,ETdaily,ETinst` **(make sure the SDS layers are comma separated, with no spaces between SDS!)**
-
+## Changing Resampling/Interpolation Methods:
+(Experimental)
+Use the --r option to select one of the following resampling methods. If no method is selected, it will default to the nearest nehighbor (kdtree) method:
+  - `kdtnn`
+  - `gauss`
+  - `bilinear`
+  - `none`
 **1.	ECO1BMAPRAD**  
   -	data_quality_1  
   -	data_quality_2  
