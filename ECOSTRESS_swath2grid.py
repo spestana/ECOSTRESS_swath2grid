@@ -13,6 +13,7 @@ import h5py, os, pyproj, sys, argparse, math
 import numpy as np
 from pyresample import geometry as geom
 from pyresample import kd_tree as kdt
+from pyresample import bilinear
 from osgeo import gdal, gdal_array, gdalconst, osr
 
 #-----------------COMMAND LINE ARGUMENTS AND ERROR HANDLING-------------------#
@@ -23,6 +24,7 @@ parser.add_argument('--dir', required=True, help='Local directory containing ECO
 parser.add_argument('--sds', required=False, help='Specific science datasets (SDS) to extract out of ECOSTRESS Granules (see UPDATE for a list of available SDS')
 parser.add_argument('--utmzone', required=False, help='UTM zone (EPSG Code) desired for all outputs--only required if needed to \
                     override default UTM zone which is assigned based on the center location for each ECOSTRESS granule')
+parser.add_argument('--r', required=False, choices=['kdtnn','gauss','bilinear','none'], help='Resampling method (Default: kd_tree nearest neighbor') # Argument for resampling method
 args = parser.parse_args()
 
 #-----------------------SET ARGUMENTS TO VARIABLES----------------------------#
@@ -140,7 +142,7 @@ for e in ecoList:
                 projDict = {'proj': proj,'datum': 'WGS84', 'units': 'degree'}
                 areaDef = geom.AreaDefinition(epsg, pName, proj, projDict, cols, rows, areaExtent)
                 ps = np.min([areaDef.pixel_size_x, areaDef.pixel_size_y])  # Square pixels 
-                
+				               
             cols = int(round((areaExtent[2] - areaExtent[0])/ps)) # Calculate the output cols
             rows = int(round((areaExtent[3] - areaExtent[1])/ps)) # Calculate the output rows                    
             areaDef = geom.AreaDefinition(epsg, pName, proj, projDict, cols, rows, areaExtent)
@@ -172,8 +174,16 @@ for e in ecoList:
             sdGEO = ecoSD
         else:
             try:
-                # Perform kdtree resampling (swath 2 grid conversion) 
-                sdGEO = kdt.get_sample_from_neighbour_info('nn', areaDef.shape, ecoSD ,index, outdex, indexArr, fill_value=fv)                        
+                
+                if (args.r == 'kdtnn') or (args.r is None):    # Perform kdtree resampling (swath 2 grid conversion) 
+                    sdGEO = kdt.get_sample_from_neighbour_info('nn', areaDef.shape, ecoSD ,index, outdex, indexArr, fill_value=fv)                  
+                elif args.r == 'gauss':    # Perform gaussian resampling (swath 2 grid conversion) 
+                    sdGEO = kdt.resample_gauss(swathDef, ecoSD, areaDef, radius_of_influence=35, sigmas=25000)
+                elif args.r == 'bilinear':    # Perform bilinear resampling (swath 2 grid conversion) 
+                    sdGEO = bilinear.resample_bilinear(ecoSD, swathDef, areaDef, radius=ps*2, neighbours=32, nprocs=1, fill_value=fv, reduce_data=True, segments=None, epsilon=0)
+                elif args.r == 'none':    # no resampling
+                    index, outdex, indexArr, distArr = kdt.get_neighbour_info(swathDef, areaDef, 70, neighbours=1)
+                    sdGEO = kdt.get_sample_from_neighbour_info('nn', areaDef.shape, ecoSD ,index, outdex, indexArr, fill_value=fv)
                 ps = np.min([areaDef.pixel_size_x, areaDef.pixel_size_y]) 
                 gt = [areaDef.area_extent[0],ps,0,areaDef.area_extent[3],0,-ps]
             except ValueError:
