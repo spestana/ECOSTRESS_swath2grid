@@ -64,7 +64,6 @@ except FileNotFoundError:
     print('error: input directory (--geodir) provided does not exist or was not found')
     sys.exit(2)
 
-
 crsIN = args.proj  # Options include 'UTM' or 'GEO'
 
 # -------------------------------------SET UP WORKSPACE------------------------------------------ #
