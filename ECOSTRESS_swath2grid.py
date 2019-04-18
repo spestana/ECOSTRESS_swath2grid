@@ -30,11 +30,9 @@ parser = argparse.ArgumentParser(description='Performs ECOSTRESS Swath to Grid C
 parser.add_argument('--proj', required=True, choices=['UTM', 'GEO'], help='Projection desired for output GeoTIFFs')
 parser.add_argument('--dir', required=True, help='Local directory containing ECOSTRESS L2+ Swath files to be processed')
 parser.add_argument('--geodir', required=True, help='Local directory containing ECOSTRESS L1B geolocation files to be processed')
-parser.add_argument('--sds', required=False, help='Specific science datasets (SDS) to extract from ECOSTRESS Granules \
-                    (see UPDATE for a list of available SDS')
-parser.add_argument('--utmzone', required=False, help='UTM zone (EPSG Code) desired for all outputs--only required if needed to \
-                    override default UTM zone which is assigned based on the center location for each ECOSTRESS granule')
-parser.add_argument('--r', required=False, choices=['kdtnn','gauss','bilinear','none'], help='Resampling method (Default: kd_tree nearest neighbor') # Argument for resampling method
+parser.add_argument('--sds', required=False, help='Specific science datasets (SDS) to extract from ECOSTRESS Granules (see UPDATE for a list of available SDS)')
+parser.add_argument('--utmzone', required=False, help='UTM zone (EPSG Code) desired for all outputs--only required if needed to override default UTM zone which is assigned based on the center location for each ECOSTRESS granule')
+parser.add_argument('--r', required=False, choices=['kdtnn','gauss','bilinear','none'], help='Resampling method (Default: kd_tree nearest neighbor)') # Argument for resampling method
 args = parser.parse_args()
 
 # --------------------------------SET ARGUMENTS TO VARIABLES------------------------------------- #
